@@ -1,4 +1,4 @@
-adv_programming_assignment
-==========================
+Advanced Programming Module Assignment
+======================================
 
 Assignment for the Advanced Programming module, a visual representation of various sorting algorithms.
