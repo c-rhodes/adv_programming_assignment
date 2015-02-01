@@ -6,6 +6,11 @@ import java.awt.geom.AffineTransform;
 import java.io.*;
 import java.util.*;
 
+/**
+ * This class produces statistics for various
+ * sorting algorithms and plots them to a graph.
+ * @author cullen
+ */
 public class SortAnalysis extends JPanel {
     private final int sizes[] = new int[] {1, 10, 100, 1000, 2000, 4000, 6000, 8000, 10000, 12000};
 
@@ -132,6 +137,11 @@ public class SortAnalysis extends JPanel {
         }
     }
 
+    /**
+     * To redraw the data structures must be
+     * reinitialised to prevent error, this
+     * helper method saves boilerplate.
+     */
     private void initDataStructures() {
         statistics = new HashMap<String, ArrayList<Long>>();
         colors = new HashMap<String, Color>();
@@ -142,6 +152,11 @@ public class SortAnalysis extends JPanel {
         quickSortStats = new ArrayList<Long>();
     }
 
+    /**
+     * Open a csv file of statistical data
+     * and plot it.
+     * @throws IOException
+     */
     private void openFile() throws IOException {
         int result = fc.showOpenDialog(this);
 
@@ -196,6 +211,10 @@ public class SortAnalysis extends JPanel {
         }
     }
 
+    /**
+     * Save the data the plot represents.
+     * @throws IOException
+     */
     private void saveFile() throws IOException {
         int result = fc.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -216,6 +235,11 @@ public class SortAnalysis extends JPanel {
         }
     }
 
+    /**
+     * Utility method to setup the graphics object.
+     * @param g
+     * @return
+     */
     private Graphics2D setupGraphics(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -262,6 +286,12 @@ public class SortAnalysis extends JPanel {
         }
     }
 
+    /**
+     * Helper method to draw the graph key.
+     * @param g
+     * @param x1
+     * @param y1
+     */
     private void drawKey(Graphics g, int x1, int y1) {
         g.drawString("Key", x1+10, y1+10);
         int x = x1+10;
@@ -277,6 +307,14 @@ public class SortAnalysis extends JPanel {
         }
     }
 
+    /**
+     * Helper method to draw the graph axes.
+     * @param g
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
     private void drawAxes(Graphics g, int x1, int y1, int x2, int y2) {
 
         /* array size (x), sorting time (y) */
@@ -331,6 +369,12 @@ public class SortAnalysis extends JPanel {
         }
     }
 
+    /**
+     * Helper method that determines the greatest
+     * sorting time in the statistics data structure
+     * @param stats
+     * @return
+     */
     private long getLargestSortingTime(Map<String, ArrayList<Long>> stats) {
         long largest = 0;
         for (Map.Entry<String, ArrayList<Long>> entry : stats.entrySet()) {
