@@ -1,11 +1,13 @@
-import javax.swing.*;
-
 /**
- * Created by cullen on 31/01/15.
+ * JPanel with an animation for the bubble sort algorithm.
  */
-
 public class BubbleSortPanel extends SortPanel {
 
+    /**
+     *
+     * @param a
+     * @throws InterruptedException
+     */
     protected void sort(int[] a) throws InterruptedException {
         int x, y, temp;
         for (x = 0; x < a.length; x++) {
@@ -14,9 +16,8 @@ public class BubbleSortPanel extends SortPanel {
                     temp = a[y];
                     a[y] = a[y + 1];
                     a[y + 1] = temp;
-                    swap_value = a[y];
                     swap_pos = y;
-                    delay(1);
+                    delay();
                 }
             }
         }

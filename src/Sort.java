@@ -1,8 +1,17 @@
 /**
- * Created by cullen on 18/01/15.
+ * This class is a separate implementation of
+ * the sorting algorithms used for statistics
+ * purposes. Benchmarking the algorithms based
+ * on the implementations in the SortPanel
+ * sub-classes is unfair because of the delay.
+ * @author cullen
  */
 public class Sort {
 
+    /**
+     *
+     * @param a
+     */
     public static void bubbleSort(int[] a) {
         int x, y, temp;
         for(x = 0; x < a.length; x++)
@@ -19,6 +28,10 @@ public class Sort {
         }
     }
 
+    /**
+     *
+     * @param a
+     */
     public static void selectionSort(int[] a) {
         for(int x = 0; x < a.length; x++)
         {
@@ -34,6 +47,10 @@ public class Sort {
         }
     }
 
+    /**
+     *
+     * @param a
+     */
     public static void insertionSort(int[] a) {
         int x, y, value;
         for(x = 1; x < a.length; x++) {
@@ -45,6 +62,10 @@ public class Sort {
         }
     }
 
+    /**
+     *
+     * @param a
+     */
     public static void mergeSort(int[] a) {
         if(a.length > 1) {
             int mid = a.length / 2;
@@ -81,10 +102,20 @@ public class Sort {
         }
     }
 
+    /**
+     *
+     * @param a
+     */
     public static void quickSort(int a[]) {
         quickSort(a, 0, a.length-1);
     }
 
+    /**
+     *
+     * @param a
+     * @param first
+     * @param last
+     */
     private static void quickSort(int a[], int first, int last) {
         if(first < last) {
             int splitpoint = 0;
@@ -96,6 +127,13 @@ public class Sort {
         }
     }
 
+    /**
+     *
+     * @param a
+     * @param first
+     * @param last
+     * @return
+     */
     private static int partition(int a[], int first, int last) {
         int pivotvalue = a[first];
 

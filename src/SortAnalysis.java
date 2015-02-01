@@ -3,38 +3,54 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
-import java.math.BigDecimal;
+import java.io.*;
 import java.util.*;
 
-/**
- * Created by cullen on 18/01/15.
- */
 public class SortAnalysis extends JPanel {
-    private Random r = new Random();
-    private final int sizes[] = new int[] {1, 10, 100, 1000, 10000, 20000, 30000, 40000, 50000, 75000, 100000};
+    private final int sizes[] = new int[] {1, 10, 100, 1000, 2000, 4000, 6000, 8000, 10000, 12000};
 
     /* data structure for storing statistics */
-    HashMap<String, ArrayList<Long>> statistics = new HashMap<String, ArrayList<Long>>();
+    private HashMap<String, ArrayList<Long>> statistics;
+    // Line colors, key is same as statistics dict
+    private HashMap<String, Color> colors;
 
     // Java has no defaultdict :(
-    ArrayList<Long> bubbleSortStats = new ArrayList<Long>();
-    ArrayList<Long> selectionSortStats = new ArrayList<Long>();
-    ArrayList<Long> insertionSortStats = new ArrayList<Long>();
-    ArrayList<Long> mergeSortStats = new ArrayList<Long>();
-    ArrayList<Long> quickSortStats = new ArrayList<Long>();
+    private ArrayList<Long> bubbleSortStats, selectionSortStats, insertionSortStats, mergeSortStats, quickSortStats;
 
-    JButton start;
-    JCheckBox bubbleSort, selectionSort, insertionSort, mergeSort, quickSort;
+    private JButton start, open, save;
+    private JCheckBox bubbleSort, selectionSort, insertionSort, mergeSort, quickSort;
 
-    boolean generated = false;
+    private JFileChooser fc = new JFileChooser();
 
     public SortAnalysis() {
         this.setLayout(new FlowLayout());
-        setBorder(BorderFactory.createLineBorder(Color.black));
 
         start = new JButton("Graph sorting algorithms");
         startActionListener startListener = new startActionListener();
         this.start.addActionListener(startListener);
+
+        open = new JButton("Open saved plot");
+        open.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    openFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        save = new JButton("Save plot data");
+        save.setEnabled(false);
+        save.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    saveFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         bubbleSort = new JCheckBox("Bubble sort");
         bubbleSort.setSelected(true);
@@ -42,7 +58,7 @@ public class SortAnalysis extends JPanel {
 
         selectionSort = new JCheckBox("Selection sort");
         selectionSort.setSelected(true);
-        this.add(bubbleSort);
+        this.add(selectionSort);
 
         insertionSort = new JCheckBox("Insertion sort");
         insertionSort.setSelected(true);
@@ -57,96 +73,175 @@ public class SortAnalysis extends JPanel {
         this.add(quickSort);
 
         this.add(start);
-
-        statistics.put("bubble", bubbleSortStats);
-        statistics.put("selection", selectionSortStats);
-        statistics.put("insertion", insertionSortStats);
-        statistics.put("merge", mergeSortStats);
-        statistics.put("quick", quickSortStats);
+        this.add(open);
+        this.add(save);
     }
 
     private class startActionListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Generating statistics");
+            initDataStructures();
 
             long startTime, endTime;
-
             for (int size : sizes) {
                 int a[] = new int[size];
-                fillArray(a);
+                SortPanel.fillArray(a);
 
                 if (bubbleSort.isSelected()) {
+                    statistics.put("bubble", bubbleSortStats);
+                    colors.put("bubble", Color.black);
                     startTime = System.currentTimeMillis();
                     Sort.bubbleSort(a.clone());
                     endTime = System.currentTimeMillis();
-                    statistics.get("bubble").add(endTime-startTime);
+                    statistics.get("bubble").add(endTime - startTime);
                 }
                 if (selectionSort.isSelected()) {
+                    statistics.put("selection", selectionSortStats);
+                    colors.put("selection", Color.blue);
                     startTime = System.currentTimeMillis();
                     Sort.selectionSort(a.clone());
                     endTime = System.currentTimeMillis();
-                    statistics.get("selection").add(endTime-startTime);
+                    statistics.get("selection").add(endTime - startTime);
                 }
                 if (insertionSort.isSelected()) {
+                    statistics.put("insertion", insertionSortStats);
+                    colors.put("insertion", Color.red);
                     startTime = System.currentTimeMillis();
                     Sort.insertionSort(a.clone());
                     endTime = System.currentTimeMillis();
-                    statistics.get("insertion").add(endTime-startTime);
+                    statistics.get("insertion").add(endTime - startTime);
                 }
                 if (mergeSort.isSelected()) {
+                    statistics.put("merge", mergeSortStats);
+                    colors.put("merge", Color.green);
                     startTime = System.currentTimeMillis();
                     Sort.mergeSort(a.clone());
                     endTime = System.currentTimeMillis();
-                    statistics.get("merge").add(endTime-startTime);
+                    statistics.get("merge").add(endTime - startTime);
                 }
                 if (quickSort.isSelected()) {
+                    statistics.put("quick", quickSortStats);
+                    colors.put("quick", Color.orange);
                     startTime = System.currentTimeMillis();
                     Sort.quickSort(a.clone());
                     endTime = System.currentTimeMillis();
-                    statistics.get("quick").add(endTime-startTime);
-                }
-                System.out.println();
-            }
-            /*
-            Map<Integer, Long> sortedBubbleMap = new TreeMap<Integer, Long>(statistics.get("bubble"));
-            for (Map.Entry<Integer, Long> entry: sortedBubbleMap.entrySet()) {
-                System.out.println(entry.getKey() + "\t" + entry.getValue());
-            }
-
-            System.out.println("Algorthm\tn\ttime (ms)");
-            for (Map.Entry<String, HashMap<Integer, Long>> entry : statistics.entrySet()) {
-                System.out.print(entry.getKey() + "\t");
-                for (Map.Entry<Integer, Long> entry2 : entry.getValue().entrySet()) {
-                    System.out.println(entry2.getKey() + "\t" + entry2.getValue());
+                    statistics.get("quick").add(endTime - startTime);
                 }
             }
-            */
-
-            generated = true;
+            save.setEnabled(true);
             repaint();
         }
+    }
+
+    private void initDataStructures() {
+        statistics = new HashMap<String, ArrayList<Long>>();
+        colors = new HashMap<String, Color>();
+        bubbleSortStats = new ArrayList<Long>();
+        selectionSortStats = new ArrayList<Long>();
+        insertionSortStats = new ArrayList<Long>();
+        mergeSortStats = new ArrayList<Long>();
+        quickSortStats = new ArrayList<Long>();
+    }
+
+    private void openFile() throws IOException {
+        int result = fc.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File csv = fc.getSelectedFile();
+            initDataStructures();
+
+            BufferedReader br = null;
+            try {
+                br = new BufferedReader(new FileReader(csv));
+                String line;
+
+                while ((line = br.readLine()) != null) {
+                    String[] data = line.split(",");
+
+                    String algorithm = data[0];
+                    if (algorithm.equals("bubble")) {
+                        statistics.put(algorithm, bubbleSortStats);
+                        colors.put(algorithm, Color.black);
+                    }
+                    else if (algorithm.equals("selection")) {
+                        statistics.put(algorithm, selectionSortStats);
+                        colors.put(algorithm, Color.blue);
+                    }
+                    else if (algorithm.equals("insertion")) {
+                        statistics.put(algorithm, insertionSortStats);
+                        colors.put(algorithm, Color.red);
+                    }
+                    else if (algorithm.equals("merge")) {
+                        statistics.put(algorithm, mergeSortStats);
+                        colors.put(algorithm, Color.green);
+                    }
+                    else if (algorithm.equals("quick")) {
+                        statistics.put(algorithm, quickSortStats);
+                        colors.put("quick", Color.orange);
+                    }
+                    else {
+
+                    }
+
+                    for (int i = 1; i < data.length; i++) {
+                        statistics.get(algorithm).add(Long.parseLong(data[i]));
+                    }
+                }
+            } catch (FileNotFoundException e) {
+            } catch (IOException e) {
+            } finally {
+                if (br != null) br.close();
+            }
+            save.setEnabled(true);
+            repaint();
+        }
+    }
+
+    private void saveFile() throws IOException {
+        int result = fc.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File csv = fc.getSelectedFile();
+            BufferedWriter br = new BufferedWriter(new FileWriter(csv));
+            StringBuilder s = new StringBuilder();
+            for (Map.Entry<String, ArrayList<Long>> entry : statistics.entrySet()) {
+                s.append(entry.getKey());
+                s.append(",");
+                for (long time : entry.getValue()) {
+                    s.append(String.valueOf(time));
+                    s.append(",");
+                }
+                s.append("\n");
+            }
+            br.write(s.toString());
+            br.close();
+        }
+    }
+
+    private Graphics2D setupGraphics(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        return g2;
     }
 
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        g = setupGraphics(g);
+
         int x1 = 75;
         int y1 = 80;
         int x2 = getWidth() - x1;
         int y2 = getHeight() - y1;
+        int y_height = getHeight() - 2 * y1;
+        int x_width = getWidth() - 2 * x1;
 
-        if (generated){
+        if (statistics != null){
             this.drawAxes(g, x1, y1, x2, y2);
+            this.drawKey(g, x1, y1);
             double largestSortTime = (double) getLargestSortingTime(statistics);
-            // Y1 HAS TO ME MINUSED TWICE FOR TOP AND BOTTOM!!!
-            double y_pixel_ratio = (y2-y1) / largestSortTime;
-
-            System.out.println(y2);
-            System.out.println(y_pixel_ratio);
-            System.out.println(largestSortTime);
+            double y_pixel_ratio = y_height / largestSortTime;
 
             int x_label_i = x1;
-            int x_label_padding = x2 / sizes.length;
+            int x_label_padding = x_width / sizes.length;
             int[] xPoints = new int[sizes.length];
 
             for (int i = 0; i < sizes.length; i++) {
@@ -155,27 +250,31 @@ public class SortAnalysis extends JPanel {
             }
 
             for (Map.Entry<String, ArrayList<Long>> entry : statistics.entrySet()) {
-                int[] yPoints = new int[sizes.length];
-                int i = 0;
-                for (long time : entry.getValue()) {
-                    yPoints[i] = y2 - (int) ((double) time * y_pixel_ratio);
-                    i++;
+                ArrayList<Long> sortTimes = entry.getValue();
+                int[] yPoints = new int[sortTimes.size()];
+                for (int i = 0; i < sortTimes.size(); i++) {
+                    yPoints[i] = y2 - (int) ((double) sortTimes.get(i) * y_pixel_ratio);
                 }
-                System.out.println(Arrays.toString(xPoints));
-                System.out.println(Arrays.toString(yPoints));
-                g.drawPolyline(xPoints, yPoints, i);
+                g.setColor(colors.get(entry.getKey()));
+                g.drawPolyline(xPoints, yPoints, sortTimes.size());
             }
+            g.setColor(Color.black);
         }
     }
 
-    private int max(int[] a) {
-        int largest = a[0];
-        for(int i : a) {
-            if (i > largest) {
-                largest = i;
-            }
+    private void drawKey(Graphics g, int x1, int y1) {
+        g.drawString("Key", x1+10, y1+10);
+        int x = x1+10;
+        int y = y1+20;
+        int width = 10;
+        int height = 10;
+        for (Map.Entry<String, ArrayList<Long>> entry : statistics.entrySet()) {
+            String algorithm = entry.getKey().substring(0, 1).toUpperCase() + entry.getKey().substring(1) + " sort";
+            g.setColor(colors.get(entry.getKey()));
+            g.fillRect(x, y, width, height);
+            g.drawString(algorithm, x + width * 2, y + height);
+            y += 20;
         }
-        return largest;
     }
 
     private void drawAxes(Graphics g, int x1, int y1, int x2, int y2) {
@@ -208,22 +307,23 @@ public class SortAnalysis extends JPanel {
         /* number axes */
 
         // x
-        int x_label_padding = x2 / sizes.length;
+        int x_width = getWidth() - 2 * x1;
+        int x_label_padding = x_width / sizes.length;
         int x_label_i = x1;
         for (int size : sizes) {
-            g.drawString(String.valueOf(size), x_label_i, y2+15);
+            int labelWidth = metrics.stringWidth(String.valueOf(size));
+            g.drawString(String.valueOf(size), x_label_i-(labelWidth/2), y2+15);
             x_label_i += x_label_padding;
         }
 
         // y
+        int y_height = getHeight() - 2 * y1;
         long largestSortTime = getLargestSortingTime(statistics);
 
-        int step = (int) Math.pow(10, Math.floor(Math.log10((double) largestSortTime))-1);
+        int step = (int) Math.pow(10, Math.floor(Math.log10((double) largestSortTime)));
         int y_max = ((int) largestSortTime - ((int) largestSortTime % step)) + step;
 
-        int y2_rounded_down = y2 - (y2 % (int) Math.pow(10, Math.floor(Math.log10((double) y2))));
-
-        int y_label_padding = y2_rounded_down / (y_max/step);
+        int y_label_padding = y_height / (y_max/step);
         int y_label_i = y2;
         for (int i = 0; i <= y_max; i += step) {
             g.drawString(String.valueOf(i), x1-40, y_label_i);
@@ -241,11 +341,5 @@ public class SortAnalysis extends JPanel {
             }
         }
         return largest;
-    }
-
-    private void fillArray(int a[]) {
-        for (int i = 0; i < a.length; i++) {
-            a[i] = r.nextInt(100);
-        }
     }
 }

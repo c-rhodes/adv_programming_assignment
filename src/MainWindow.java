@@ -1,23 +1,47 @@
-import com.sun.org.apache.bcel.internal.generic.ARRAYLENGTH;
-import sun.misc.Sort;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Random;
-import java.util.Arrays;
 
 /**
- * Created by cullen on 05/01/15.
+ * Cullen Rhodes
+ * 13116683
  */
 
 public class MainWindow extends JFrame {
+    private JMenuBar menubar;
+    private JMenu fileMenu, helpMenu;
+    private JMenuItem exitItem, aboutItem;
 
     public MainWindow() {
-        super("Visual Representation of Sorting Algorithms");
+        super("Sorting Algorithms Animated");
+
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {};
 
         this.setLayout(new GridBagLayout());
+
+        menubar = new JMenuBar();
+        this.setJMenuBar(menubar);
+
+        fileMenu = new JMenu("File");
+        menubar.add(fileMenu);
+
+        helpMenu = new JMenu("Help");
+        menubar.add(helpMenu);
+
+        aboutItem = new JMenuItem("About");
+        helpMenu.add(aboutItem);
+
+        exitItem = new JMenuItem("Exit");
+        exitItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                System.exit(0);
+            }
+        });
+
+        fileMenu.add(exitItem);
 
         GridBagConstraints controlBarPanel_c = new GridBagConstraints();
 
@@ -36,6 +60,7 @@ public class MainWindow extends JFrame {
         InsertionSortPanel insertionSortPanel = new InsertionSortPanel();
         QuickSortPanel quickSortPanel = new QuickSortPanel();
         MergeSortPanel mergeSortPanel = new MergeSortPanel();
+        SortAnalysis sortAnalysisPanel = new SortAnalysis();
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Bubble Sort", bubbleSortPanel);
@@ -43,10 +68,11 @@ public class MainWindow extends JFrame {
         tabbedPane.addTab("Insertion Sort", insertionSortPanel);
         tabbedPane.addTab("Merge Sort", mergeSortPanel);
         tabbedPane.addTab("Quicksort", quickSortPanel);
+        tabbedPane.addTab("Analysis", sortAnalysisPanel);
 
         this.add(tabbedPane, controlBarPanel_c);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(800, 600);
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setVisible(true);
     }
 }

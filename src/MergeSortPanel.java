@@ -1,26 +1,33 @@
-import java.awt.*;
-import java.util.Arrays;
 
 /**
- * Created by cullen on 31/01/15.
+ * JPanel with an animation for the merge sort algorithm.
  */
 public class MergeSortPanel extends SortPanel {
-    private int[] numbers;
-    private int[] helper;
+    private int[] array;
+    private int[] scratch;
 
     private int number;
 
     public MergeSortPanel() {
-        this.numbers = new int[]{};
+        this.array = new int[]{};
     }
 
+    /**
+     *
+     * @param a
+     */
     protected void sort(int[] a) {
-        this.numbers = a;
+        this.array = a;
         number = a.length;
-        this.helper = new int[number];
+        this.scratch = new int[number];
         mergeSort(0, number - 1);
     }
 
+    /**
+     *
+     * @param low
+     * @param high
+     */
     private void mergeSort(int low, int high) {
         if(low < high) {
             int middle = low + (high - low) / 2;
@@ -32,10 +39,17 @@ public class MergeSortPanel extends SortPanel {
         }
     }
 
+    /**
+     *
+     * @param low
+     * @param middle
+     * @param high
+     * @throws InterruptedException
+     */
     private void merge(int low, int middle, int high) throws InterruptedException {
 
         for(int i = low; i <= high; i++) {
-            helper[i] = numbers[i];
+            scratch[i] = array[i];
         }
 
         int i = low;
@@ -43,34 +57,21 @@ public class MergeSortPanel extends SortPanel {
         int k = low;
 
         while(i <= middle && j <= high) {
-            if(helper[i] <= helper[j]) {
-                numbers[k] = helper[i];
-                i++;
+            if(scratch[i] <= scratch[j]) {
+                array[k] = scratch[i++];
             } else {
-                numbers[k] = helper[j];
-                j++;
+                array[k] = scratch[j++];
             }
+            swap_pos = k;
             k++;
-            delay(10);
+            delay();
         }
 
         while(i <= middle) {
-            numbers[k] = helper[i];
-            k++;
-            i++;
+            array[k] = scratch[i];
+            swap_pos = k;
+            k++; i++;
         }
-        delay(10);
-    }
-
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-
-        int defaultx = (this.getWidth() / 2) - numbers.length / 2;
-        int defaulty = (this.getHeight() / 2) - MAX_VALUE / 2;
-
-        for (int i = 0; i < numbers.length; i++) {
-            g.setColor(Color.black);
-            g.drawLine(i + defaultx, MAX_VALUE + defaulty, i + defaultx, MAX_VALUE + defaulty - numbers[i]);
-        }
+        delay();
     }
 }
