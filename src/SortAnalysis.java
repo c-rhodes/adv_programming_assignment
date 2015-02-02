@@ -4,6 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -22,15 +24,20 @@ public class SortAnalysis extends JPanel {
     // Java has no defaultdict :(
     private ArrayList<Long> bubbleSortStats, selectionSortStats, insertionSortStats, mergeSortStats, quickSortStats;
 
+    private JProgressBar progress;
     private JButton start, open, save;
     private JCheckBox bubbleSort, selectionSort, insertionSort, mergeSort, quickSort;
-
     private JFileChooser fc = new JFileChooser();
+
+    private boolean generated = false;
 
     public SortAnalysis() {
         this.setLayout(new FlowLayout());
 
-        start = new JButton("Graph sorting algorithms");
+        progress = new JProgressBar();
+        this.add(progress);
+
+        start = new JButton("Graph");
         startActionListener startListener = new startActionListener();
         this.start.addActionListener(startListener);
 
@@ -58,23 +65,55 @@ public class SortAnalysis extends JPanel {
         });
 
         bubbleSort = new JCheckBox("Bubble sort");
-        bubbleSort.setSelected(true);
-        this.add(bubbleSort);
+        bubbleSort.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                AbstractButton b = (AbstractButton) actionEvent.getSource();
+                if (!b.getModel().isSelected()) generated = false;
+            }
+        });
 
         selectionSort = new JCheckBox("Selection sort");
-        selectionSort.setSelected(true);
-        this.add(selectionSort);
+        selectionSort.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                AbstractButton b = (AbstractButton) actionEvent.getSource();
+                if (!b.getModel().isSelected()) generated = false;
+            }
+        });
 
         insertionSort = new JCheckBox("Insertion sort");
-        insertionSort.setSelected(true);
-        this.add(insertionSort);
+        insertionSort.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                AbstractButton b = (AbstractButton) actionEvent.getSource();
+                if (!b.getModel().isSelected()) generated = false;
+            }
+        });
 
         mergeSort = new JCheckBox("Merge sort");
-        mergeSort.setSelected(true);
-        this.add(mergeSort);
+        mergeSort.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                AbstractButton b = (AbstractButton) actionEvent.getSource();
+                if (!b.getModel().isSelected()) generated = false;
+            }
+        });
 
         quickSort = new JCheckBox("Quicksort");
+        quickSort.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                AbstractButton b = (AbstractButton) actionEvent.getSource();
+                if (!b.getModel().isSelected()) generated = false;
+            }
+        });
+
+        bubbleSort.setSelected(true);
+        selectionSort.setSelected(true);
+        insertionSort.setSelected(true);
+        mergeSort.setSelected(true);
         quickSort.setSelected(true);
+
+        this.add(bubbleSort);
+        this.add(selectionSort);
+        this.add(insertionSort);
+        this.add(mergeSort);
         this.add(quickSort);
 
         this.add(start);
@@ -84,57 +123,53 @@ public class SortAnalysis extends JPanel {
 
     private class startActionListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            initDataStructures();
-
-            long startTime, endTime;
-            for (int size : sizes) {
-                int a[] = new int[size];
-                SortPanel.fillArray(a);
-
-                if (bubbleSort.isSelected()) {
-                    statistics.put("bubble", bubbleSortStats);
-                    colors.put("bubble", Color.black);
-                    startTime = System.currentTimeMillis();
-                    Sort.bubbleSort(a.clone());
-                    endTime = System.currentTimeMillis();
-                    statistics.get("bubble").add(endTime - startTime);
-                }
-                if (selectionSort.isSelected()) {
-                    statistics.put("selection", selectionSortStats);
-                    colors.put("selection", Color.blue);
-                    startTime = System.currentTimeMillis();
-                    Sort.selectionSort(a.clone());
-                    endTime = System.currentTimeMillis();
-                    statistics.get("selection").add(endTime - startTime);
-                }
-                if (insertionSort.isSelected()) {
-                    statistics.put("insertion", insertionSortStats);
-                    colors.put("insertion", Color.red);
-                    startTime = System.currentTimeMillis();
-                    Sort.insertionSort(a.clone());
-                    endTime = System.currentTimeMillis();
-                    statistics.get("insertion").add(endTime - startTime);
-                }
-                if (mergeSort.isSelected()) {
-                    statistics.put("merge", mergeSortStats);
-                    colors.put("merge", Color.green);
-                    startTime = System.currentTimeMillis();
-                    Sort.mergeSort(a.clone());
-                    endTime = System.currentTimeMillis();
-                    statistics.get("merge").add(endTime - startTime);
-                }
-                if (quickSort.isSelected()) {
-                    statistics.put("quick", quickSortStats);
-                    colors.put("quick", Color.orange);
-                    startTime = System.currentTimeMillis();
-                    Sort.quickSort(a.clone());
-                    endTime = System.currentTimeMillis();
-                    statistics.get("quick").add(endTime - startTime);
-                }
-            }
-            save.setEnabled(true);
-            repaint();
+            analyseSortingAlgorithms();
         }
+    }
+
+    /**
+     *
+     */
+    private void analyseSortingAlgorithms() {
+        initDataStructures();
+
+        progress.setIndeterminate(true);
+        new Thread(new Runnable() {
+            public void run() {
+                final int n = 10;
+                for (int size : sizes) {
+                    if (bubbleSort.isSelected()) {
+                        statistics.put("bubble", bubbleSortStats);
+                        colors.put("bubble", Color.black);
+                        statistics.get("bubble").add(Sort.averageTime("bubble", size, n));
+                    }
+                    if (selectionSort.isSelected()) {
+                        statistics.put("selection", selectionSortStats);
+                        colors.put("selection", Color.blue);
+                        statistics.get("selection").add(Sort.averageTime("selection", size, n));
+                    }
+                    if (insertionSort.isSelected()) {
+                        statistics.put("insertion", insertionSortStats);
+                        colors.put("insertion", Color.red);
+                        statistics.get("insertion").add(Sort.averageTime("insertion", size, n));
+                    }
+                    if (mergeSort.isSelected()) {
+                        statistics.put("merge", mergeSortStats);
+                        colors.put("merge", Color.green);
+                        statistics.get("merge").add(Sort.averageTime("merge", size, n));
+                    }
+                    if (quickSort.isSelected()) {
+                        statistics.put("quick", quickSortStats);
+                        colors.put("quick", Color.orange);
+                        statistics.get("quick").add(Sort.averageTime("quick", size, n));
+                    }
+                }
+                generated = true;
+                save.setEnabled(true);
+                progress.setIndeterminate(false);
+                repaint();
+            }
+        }).start();
     }
 
     /**
@@ -258,7 +293,7 @@ public class SortAnalysis extends JPanel {
         int y_height = getHeight() - 2 * y1;
         int x_width = getWidth() - 2 * x1;
 
-        if (statistics != null){
+        if (generated) {
             this.drawAxes(g, x1, y1, x2, y2);
             this.drawKey(g, x1, y1);
             double largestSortTime = (double) getLargestSortingTime(statistics);

@@ -43,17 +43,17 @@ public class MainWindow extends JFrame {
 
         fileMenu.add(exitItem);
 
-        GridBagConstraints controlBarPanel_c = new GridBagConstraints();
+        GridBagConstraints constraints = new GridBagConstraints();
 
-        controlBarPanel_c.gridx = 0;
-        controlBarPanel_c.gridy = 0;
-        controlBarPanel_c.gridwidth = GridBagConstraints.REMAINDER;
-        controlBarPanel_c.gridheight = 1;
-        controlBarPanel_c.weightx = 1;
-        controlBarPanel_c.weighty = 1;
-        controlBarPanel_c.anchor = GridBagConstraints.FIRST_LINE_START;
-        controlBarPanel_c.fill = GridBagConstraints.BOTH;
-        controlBarPanel_c.insets = new Insets(4, 4, 4, 4);
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        constraints.gridheight = 1;
+        constraints.weightx = 1;
+        constraints.weighty = 1;
+        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.insets = new Insets(4, 4, 4, 4);
 
         BubbleSortPanel bubbleSortPanel = new BubbleSortPanel();
         SelectionSortPanel selectionSortPanel = new SelectionSortPanel();
@@ -70,7 +70,7 @@ public class MainWindow extends JFrame {
         tabbedPane.addTab("Quicksort", quickSortPanel);
         tabbedPane.addTab("Analysis", sortAnalysisPanel);
 
-        this.add(tabbedPane, controlBarPanel_c);
+        this.add(tabbedPane, constraints);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setVisible(true);

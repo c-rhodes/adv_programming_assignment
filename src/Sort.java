@@ -9,6 +9,37 @@
 public class Sort {
 
     /**
+     * Run the given algorithm n times with a dataset
+     * of given size
+     * @param algorithm
+     * @param size
+     * @return
+     */
+    public static long averageTime(String algorithm, int size, int n) {
+        int a[] = new int[size];
+        long averageTime = 0l;
+        for (int i = 0; i < n; i++) {
+            SortPanel.fillArray(a);
+            long startTime = System.currentTimeMillis();
+            /* Would be nice if we could pass methods as arguments -_- */
+            if (algorithm.equals("bubble")) {
+                Sort.bubbleSort(a);
+            } else if (algorithm.equals("selection")) {
+                Sort.selectionSort(a);
+            } else if (algorithm.equals("insertion")) {
+                Sort.insertionSort(a);
+            } else if (algorithm.equals("merge")) {
+                Sort.mergeSort(a);
+            } else if (algorithm.equals("quick")) {
+                Sort.quickSort(a);
+            }
+            long endTime = System.currentTimeMillis();
+            averageTime += endTime - startTime;
+        }
+        return averageTime / (long) n;
+    }
+
+    /**
      *
      * @param a
      */

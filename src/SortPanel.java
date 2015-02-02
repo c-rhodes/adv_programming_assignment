@@ -32,8 +32,6 @@ public class SortPanel extends JComponent {
     JSlider delaySlider;
 
     public SortPanel() {
-        setBorder(BorderFactory.createLineBorder(Color.black));
-
         this.setLayout(new FlowLayout());
 
         this.startButton = new JButton("Start sorting");
