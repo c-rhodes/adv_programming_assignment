@@ -4,8 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -21,7 +19,7 @@ public class SortAnalysis extends JPanel {
     // Line colors, key is same as statistics dict
     private HashMap<String, Color> colors;
 
-    // Java has no defaultdict :(
+    // Value ArrayLists for statistics HashMap, Java has no defaultdict :(
     private ArrayList<Long> bubbleSortStats, selectionSortStats, insertionSortStats, mergeSortStats, quickSortStats;
 
     private JProgressBar progress;
@@ -64,45 +62,19 @@ public class SortAnalysis extends JPanel {
             }
         });
 
+        checkActionListener checkListener = new checkActionListener();
+
         bubbleSort = new JCheckBox("Bubble sort");
-        bubbleSort.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                AbstractButton b = (AbstractButton) actionEvent.getSource();
-                if (!b.getModel().isSelected()) generated = false;
-            }
-        });
-
         selectionSort = new JCheckBox("Selection sort");
-        selectionSort.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                AbstractButton b = (AbstractButton) actionEvent.getSource();
-                if (!b.getModel().isSelected()) generated = false;
-            }
-        });
-
         insertionSort = new JCheckBox("Insertion sort");
-        insertionSort.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                AbstractButton b = (AbstractButton) actionEvent.getSource();
-                if (!b.getModel().isSelected()) generated = false;
-            }
-        });
-
         mergeSort = new JCheckBox("Merge sort");
-        mergeSort.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                AbstractButton b = (AbstractButton) actionEvent.getSource();
-                if (!b.getModel().isSelected()) generated = false;
-            }
-        });
-
         quickSort = new JCheckBox("Quicksort");
-        quickSort.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                AbstractButton b = (AbstractButton) actionEvent.getSource();
-                if (!b.getModel().isSelected()) generated = false;
-            }
-        });
+
+        bubbleSort.addActionListener(checkListener);
+        selectionSort.addActionListener(checkListener);
+        insertionSort.addActionListener(checkListener);
+        mergeSort.addActionListener(checkListener);
+        quickSort.addActionListener(checkListener);
 
         bubbleSort.setSelected(true);
         selectionSort.setSelected(true);
@@ -121,14 +93,32 @@ public class SortAnalysis extends JPanel {
         this.add(save);
     }
 
+    /**
+     * ActionListener for the algorithm checkboxes,
+     * if deselected generated is set to false so
+     * to prevent repainting until triggered by the user.
+     */
+    private class checkActionListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            AbstractButton b = (AbstractButton) e.getSource();
+            if (!b.getModel().isSelected()) generated = false;
+        }
+    }
+
+    /**
+     * ActionListener that starts the analysis.
+     */
     private class startActionListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
+            generated = false;
             analyseSortingAlgorithms();
         }
     }
 
     /**
-     *
+     * Method that initialises the appropriate data structures
+     * and plots the selected algorithms. The averaging is handled
+     * by Sort.averageTime.
      */
     private void analyseSortingAlgorithms() {
         initDataStructures();
@@ -136,46 +126,45 @@ public class SortAnalysis extends JPanel {
         progress.setIndeterminate(true);
         new Thread(new Runnable() {
             public void run() {
-                final int n = 10;
-                for (int size : sizes) {
-                    if (bubbleSort.isSelected()) {
-                        statistics.put("bubble", bubbleSortStats);
-                        colors.put("bubble", Color.black);
-                        statistics.get("bubble").add(Sort.averageTime("bubble", size, n));
-                    }
-                    if (selectionSort.isSelected()) {
-                        statistics.put("selection", selectionSortStats);
-                        colors.put("selection", Color.blue);
-                        statistics.get("selection").add(Sort.averageTime("selection", size, n));
-                    }
-                    if (insertionSort.isSelected()) {
-                        statistics.put("insertion", insertionSortStats);
-                        colors.put("insertion", Color.red);
-                        statistics.get("insertion").add(Sort.averageTime("insertion", size, n));
-                    }
-                    if (mergeSort.isSelected()) {
-                        statistics.put("merge", mergeSortStats);
-                        colors.put("merge", Color.green);
-                        statistics.get("merge").add(Sort.averageTime("merge", size, n));
-                    }
-                    if (quickSort.isSelected()) {
-                        statistics.put("quick", quickSortStats);
-                        colors.put("quick", Color.orange);
-                        statistics.get("quick").add(Sort.averageTime("quick", size, n));
-                    }
+            final int n = 10;
+            for (int size : sizes) {
+                if (bubbleSort.isSelected()) {
+                    statistics.put("bubble", bubbleSortStats);
+                    colors.put("bubble", Color.black);
+                    statistics.get("bubble").add(Sort.averageTime("bubble", size, n));
                 }
-                generated = true;
-                save.setEnabled(true);
-                progress.setIndeterminate(false);
-                repaint();
+                if (selectionSort.isSelected()) {
+                    statistics.put("selection", selectionSortStats);
+                    colors.put("selection", Color.blue);
+                    statistics.get("selection").add(Sort.averageTime("selection", size, n));
+                }
+                if (insertionSort.isSelected()) {
+                    statistics.put("insertion", insertionSortStats);
+                    colors.put("insertion", Color.red);
+                    statistics.get("insertion").add(Sort.averageTime("insertion", size, n));
+                }
+                if (mergeSort.isSelected()) {
+                    statistics.put("merge", mergeSortStats);
+                    colors.put("merge", Color.green);
+                    statistics.get("merge").add(Sort.averageTime("merge", size, n));
+                }
+                if (quickSort.isSelected()) {
+                    statistics.put("quick", quickSortStats);
+                    colors.put("quick", Color.orange);
+                    statistics.get("quick").add(Sort.averageTime("quick", size, n));
+                }
+            }
+            generated = true;
+            save.setEnabled(true);
+            progress.setIndeterminate(false);
+            repaint();
             }
         }).start();
     }
 
     /**
      * To redraw the data structures must be
-     * reinitialised to prevent error, this
-     * helper method saves boilerplate.
+     * reinitialised to prevent error.
      */
     private void initDataStructures() {
         statistics = new HashMap<String, ArrayList<Long>>();
@@ -241,6 +230,7 @@ public class SortAnalysis extends JPanel {
             } finally {
                 if (br != null) br.close();
             }
+            generated = true;
             save.setEnabled(true);
             repaint();
         }
