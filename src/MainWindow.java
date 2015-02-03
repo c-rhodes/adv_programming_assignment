@@ -10,8 +10,8 @@ import java.awt.event.ActionListener;
 
 public class MainWindow extends JFrame {
     private JMenuBar menubar;
-    private JMenu fileMenu, helpMenu;
-    private JMenuItem exitItem, aboutItem;
+    private JMenu fileMenu;
+    private JMenuItem exitItem;
 
     public MainWindow() {
         super("Sorting Algorithms Animated");
@@ -27,12 +27,6 @@ public class MainWindow extends JFrame {
 
         fileMenu = new JMenu("File");
         menubar.add(fileMenu);
-
-        helpMenu = new JMenu("Help");
-        menubar.add(helpMenu);
-
-        aboutItem = new JMenuItem("About");
-        helpMenu.add(aboutItem);
 
         exitItem = new JMenuItem("Exit");
         exitItem.addActionListener(new ActionListener() {
