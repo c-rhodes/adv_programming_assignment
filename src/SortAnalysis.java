@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * This class produces statistics for various
@@ -12,15 +13,15 @@ import java.util.*;
  * @author cullen
  */
 public class SortAnalysis extends JPanel {
-    private final int sizes[] = new int[] {1, 10, 100, 1000, 2000, 4000, 6000, 8000, 10000, 12000};
-
+    private List<Integer> sizes;
     /* data structure for storing statistics */
-    private HashMap<String, ArrayList<Long>> statistics;
+    private HashMap<String, LinkedHashMap<Integer, Long>> statistics;
     // Line colors, key is same as statistics dict
     private HashMap<String, Color> colors;
 
     // Value ArrayLists for statistics HashMap, Java has no defaultdict :(
-    private ArrayList<Long> bubbleSortStats, selectionSortStats, insertionSortStats, mergeSortStats, quickSortStats;
+    private LinkedHashMap<Integer, Long> bubbleSortStats, selectionSortStats,
+            insertionSortStats, mergeSortStats, quickSortStats;
 
     private JProgressBar progress;
     private JButton start, open, save;
@@ -31,6 +32,10 @@ public class SortAnalysis extends JPanel {
 
     public SortAnalysis() {
         this.setLayout(new FlowLayout());
+
+        this.sizes = new ArrayList<Integer>(Arrays.asList(1, 10, 100));
+        for (int i = 1000; i <= 12000; i += 1000)
+            this.sizes.add(i);
 
         progress = new JProgressBar();
         this.add(progress);
@@ -131,27 +136,27 @@ public class SortAnalysis extends JPanel {
                 if (bubbleSort.isSelected()) {
                     statistics.put("bubble", bubbleSortStats);
                     colors.put("bubble", Color.black);
-                    statistics.get("bubble").add(Sort.averageTime("bubble", size, n));
+                    statistics.get("bubble").put(size, Sort.averageTime("bubble", size, n));
                 }
                 if (selectionSort.isSelected()) {
                     statistics.put("selection", selectionSortStats);
                     colors.put("selection", Color.blue);
-                    statistics.get("selection").add(Sort.averageTime("selection", size, n));
+                    statistics.get("selection").put(size, Sort.averageTime("selection", size, n));
                 }
                 if (insertionSort.isSelected()) {
                     statistics.put("insertion", insertionSortStats);
                     colors.put("insertion", Color.red);
-                    statistics.get("insertion").add(Sort.averageTime("insertion", size, n));
+                    statistics.get("insertion").put(size, Sort.averageTime("insertion", size, n));
                 }
                 if (mergeSort.isSelected()) {
                     statistics.put("merge", mergeSortStats);
                     colors.put("merge", Color.green);
-                    statistics.get("merge").add(Sort.averageTime("merge", size, n));
+                    statistics.get("merge").put(size, Sort.averageTime("merge", size, n));
                 }
                 if (quickSort.isSelected()) {
                     statistics.put("quick", quickSortStats);
                     colors.put("quick", Color.orange);
-                    statistics.get("quick").add(Sort.averageTime("quick", size, n));
+                    statistics.get("quick").put(size, Sort.averageTime("quick", size, n));
                 }
             }
             generated = true;
@@ -167,13 +172,13 @@ public class SortAnalysis extends JPanel {
      * reinitialised to prevent error.
      */
     private void initDataStructures() {
-        statistics = new HashMap<String, ArrayList<Long>>();
-        colors = new HashMap<String, Color>();
-        bubbleSortStats = new ArrayList<Long>();
-        selectionSortStats = new ArrayList<Long>();
-        insertionSortStats = new ArrayList<Long>();
-        mergeSortStats = new ArrayList<Long>();
-        quickSortStats = new ArrayList<Long>();
+        statistics = new LinkedHashMap<String, LinkedHashMap<Integer, Long>>();
+        colors = new LinkedHashMap<String, Color>();
+        bubbleSortStats = new LinkedHashMap<Integer, Long>();
+        selectionSortStats = new LinkedHashMap<Integer, Long>();
+        insertionSortStats = new LinkedHashMap<Integer, Long>();
+        mergeSortStats = new LinkedHashMap<Integer, Long>();
+        quickSortStats = new LinkedHashMap<Integer, Long>();
     }
 
     /**
@@ -192,39 +197,50 @@ public class SortAnalysis extends JPanel {
             try {
                 br = new BufferedReader(new FileReader(csv));
                 String line;
+                String algorithm = "";
 
                 while ((line = br.readLine()) != null) {
                     String[] data = line.split(",");
 
-                    String algorithm = data[0];
+                    algorithm = data[0];
+                    int n = Integer.parseInt(data[1]);
+                    long time = Long.parseLong(data[2]);
+
+                    LinkedHashMap<Integer, Long> algorithmStats;
+                    Color algorithmColor;
                     if (algorithm.equals("bubble")) {
-                        statistics.put(algorithm, bubbleSortStats);
-                        colors.put(algorithm, Color.black);
+                        algorithmStats = bubbleSortStats;
+                        algorithmColor = Color.black;
                     }
                     else if (algorithm.equals("selection")) {
-                        statistics.put(algorithm, selectionSortStats);
-                        colors.put(algorithm, Color.blue);
+                        algorithmStats = selectionSortStats;
+                        algorithmColor = Color.blue;
                     }
                     else if (algorithm.equals("insertion")) {
-                        statistics.put(algorithm, insertionSortStats);
-                        colors.put(algorithm, Color.red);
+                        algorithmStats = insertionSortStats;
+                        algorithmColor = Color.red;
                     }
                     else if (algorithm.equals("merge")) {
-                        statistics.put(algorithm, mergeSortStats);
-                        colors.put(algorithm, Color.green);
+                        algorithmStats = mergeSortStats;
+                        algorithmColor = Color.green;
                     }
                     else if (algorithm.equals("quick")) {
-                        statistics.put(algorithm, quickSortStats);
-                        colors.put("quick", Color.orange);
+                        algorithmStats = quickSortStats;
+                        algorithmColor = Color.orange;
                     }
                     else {
-
+                        return;
                     }
 
-                    for (int i = 1; i < data.length; i++) {
-                        statistics.get(algorithm).add(Long.parseLong(data[i]));
-                    }
+                    if (!statistics.containsKey(algorithm))
+                        statistics.put(algorithm, algorithmStats);
+
+                    if (!colors.containsKey(algorithmColor))
+                        colors.put(algorithm, algorithmColor);
+
+                    statistics.get(algorithm).put(n, time);
                 }
+                sizes = new ArrayList<Integer>(statistics.get(algorithm).keySet());
             } catch (FileNotFoundException e) {
             } catch (IOException e) {
             } finally {
@@ -246,14 +262,17 @@ public class SortAnalysis extends JPanel {
             File csv = fc.getSelectedFile();
             BufferedWriter br = new BufferedWriter(new FileWriter(csv));
             StringBuilder s = new StringBuilder();
-            for (Map.Entry<String, ArrayList<Long>> entry : statistics.entrySet()) {
-                s.append(entry.getKey());
-                s.append(",");
-                for (long time : entry.getValue()) {
-                    s.append(String.valueOf(time));
+            for (Map.Entry<String, LinkedHashMap<Integer, Long>> entry : statistics.entrySet()) {
+                for (Map.Entry<Integer, Long> entry2 : entry.getValue().entrySet())
+                {
+                    s.append(entry.getKey());
                     s.append(",");
+                    s.append(entry2.getKey());
+                    s.append(",");
+                    s.append(String.valueOf(entry2.getValue()));
+                    s.append(",");
+                    s.append("\n");
                 }
-                s.append("\n");
             }
             br.write(s.toString());
             br.close();
@@ -290,22 +309,23 @@ public class SortAnalysis extends JPanel {
             double y_pixel_ratio = y_height / largestSortTime;
 
             int x_label_i = x1;
-            int x_label_padding = x_width / sizes.length;
-            int[] xPoints = new int[sizes.length];
+            int x_label_padding = x_width / sizes.size();
+            int[] xPoints = new int[sizes.size()];
 
-            for (int i = 0; i < sizes.length; i++) {
+            for (int i = 0; i < sizes.size(); i++) {
                 xPoints[i] = x_label_i;
                 x_label_i += x_label_padding;
             }
 
-            for (Map.Entry<String, ArrayList<Long>> entry : statistics.entrySet()) {
-                ArrayList<Long> sortTimes = entry.getValue();
-                int[] yPoints = new int[sortTimes.size()];
-                for (int i = 0; i < sortTimes.size(); i++) {
-                    yPoints[i] = y2 - (int) ((double) sortTimes.get(i) * y_pixel_ratio);
+            for (Map.Entry<String, LinkedHashMap<Integer, Long>> entry : statistics.entrySet()) {
+                int[] yPoints = new int[entry.getValue().keySet().size()];
+                int i = 0;
+                for (Map.Entry<Integer, Long> entry2 : entry.getValue().entrySet()) {
+                    yPoints[i] = y2 - (int) ((double) entry2.getValue() * y_pixel_ratio);
+                    i++;
                 }
                 g.setColor(colors.get(entry.getKey()));
-                g.drawPolyline(xPoints, yPoints, sortTimes.size());
+                g.drawPolyline(xPoints, yPoints, yPoints.length);
             }
             g.setColor(Color.black);
         }
@@ -317,13 +337,14 @@ public class SortAnalysis extends JPanel {
      * @param x1
      * @param y1
      */
+
     private void drawKey(Graphics g, int x1, int y1) {
         g.drawString("Key", x1+10, y1+10);
         int x = x1+10;
         int y = y1+20;
         int width = 10;
         int height = 10;
-        for (Map.Entry<String, ArrayList<Long>> entry : statistics.entrySet()) {
+        for (Map.Entry<String, LinkedHashMap<Integer, Long>> entry : statistics.entrySet()) {
             String algorithm = entry.getKey().substring(0, 1).toUpperCase() + entry.getKey().substring(1) + " sort";
             g.setColor(colors.get(entry.getKey()));
             g.fillRect(x, y, width, height);
@@ -371,7 +392,7 @@ public class SortAnalysis extends JPanel {
 
         // x
         int x_width = getWidth() - 2 * x1;
-        int x_label_padding = x_width / sizes.length;
+        int x_label_padding = x_width / sizes.size();
         int x_label_i = x1;
         for (int size : sizes) {
             int labelWidth = metrics.stringWidth(String.valueOf(size));
@@ -400,13 +421,12 @@ public class SortAnalysis extends JPanel {
      * @param stats
      * @return
      */
-    private long getLargestSortingTime(Map<String, ArrayList<Long>> stats) {
+    private long getLargestSortingTime(Map<String, LinkedHashMap<Integer, Long>> stats) {
         long largest = 0;
-        for (Map.Entry<String, ArrayList<Long>> entry : stats.entrySet()) {
-            for (long time : entry.getValue()) {
-                if (time > largest) {
-                    largest = time;
-                }
+        for (Map.Entry<String, LinkedHashMap<Integer, Long>> entry : stats.entrySet()) {
+            for (Map.Entry<Integer, Long> entry2 : entry.getValue().entrySet()) {
+                if (entry2.getValue() > largest)
+                    largest = entry2.getValue();
             }
         }
         return largest;
